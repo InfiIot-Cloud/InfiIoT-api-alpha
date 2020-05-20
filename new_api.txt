@@ -1,0 +1,197 @@
+
+
+ALL APIS:
+- implement error codes properly 
+- message: "success" or "error" 
+- forced JSON output for every API
+- change projectnames to device 
+- variableName to variable
+- dashboardName to dashboard in all api payloads and responses 
+
+
+USER:
+
+login api:
+- add username
+- add last_updated
+- add data count
+
+
+DEVICES:
+
+Get Device:
+- add device location also to response payload
+
+
+**NEW** Update Device:							//Wont be used much
+-URl: apis/v1.0/update-Device
+Payload:
+{
+	"token": "asds",
+	"projectName":"Weather Station",
+	"location":{"lat":"19.182755","long":"72.182755"}, 				//not compulsory(also "coordinates" key should work in place of "location")
+	"values":
+	[
+		{
+			"variable":"Air Temperature", 
+			"unit":"*C",
+			"data":[
+						{
+							"value": 25,
+							"timestamp": TIMESTAMP
+						}
+						....
+						{
+							"value": 30,
+							"timestamp": TIMESTAMP
+						}
+					]
+		},
+		{	
+			... 
+		},
+		{
+			"variable":"Air Humidity",
+			"unit":"%",
+			"data":[{"value": 96, "timestamp": TIMESTAMP}....{"value": 92, "timestamp": TIMESTAMP}]				//timestamp not compulsory
+		}
+	]	
+}
+//either data or location must be present inside payload, else give error
+
+
+**NEW** Delete Device:
+-URl: apis/v1.0/delete-Device
+Payload:
+{
+	"token": "asds",
+	"device":"Weather Station"
+}
+
+
+VARIABLES:
+
+**NEW**  Get Variable Data:
+- add "values":"any number" in payload e.g. 
+URl: apis/v1.0/get-Variable
+Payload:
+{
+	"token": "4845221e-fb67-43de-8dd8-90e479d59c3d",
+	"device": "Weather Station",
+	"variable": "Air Temperature",
+	"values":"10"
+} 												
+//if value is * return all  e.g. "value":"*"
+//if value is specified in integer return that many data
+Result :  then 10 values will be returned for variable name
+
+
+**NEW**  Get Variable Data Last Value:
+- add "values":"any number" in payload e.g. 
+URl: apis/v1.0/get-Variable-lv							//lv- stands for last value 
+Payload:
+{
+	"token": "4845221e-fb67-43de-8dd8-90e479d59c3d",
+	"device": "Weather Station",
+	"variable": "Air Temperature"	
+} 
+
+
+Get Variable Data for Table :
+- add unit in response payload
+
+
+Get Variable Data for Chart :
+- add unit in response payload
+
+
+**NEW** Update Variable:
+-URl: apis/v1.0/update-Variable
+Payload:																//for single variable update
+{
+	"token": "4845221e-fb67-43de-8dd8-90e479d59c3d",
+	"device":"Weather Station",
+	"variable":"Air Temperature",
+	"unit":"",
+	"data":{"value": 23, "timestamp": TIMESTAMP}			//timestamp not compulsory
+}
+
+Payload:																//for multiple variable update
+{
+	"token": "4845221e-fb67-43de-8dd8-90e479d59c3d",
+	"device":"Weather Station",
+	"values":
+			[
+				{
+					"variable":"Air Temperature", 
+					"unit":"*C",
+					"data":[
+								{
+									"value": 25,
+									"timestamp": TIMESTAMP
+								}
+								....
+								{
+									"value": 30,
+									"timestamp": TIMESTAMP
+								}
+							]
+				},
+				{	
+					... 
+				},
+				{
+					"variable":"Air Humidity",
+					"unit":"%",
+					"data":[{"value": 96, "timestamp": TIMESTAMP}....{"value": 92, "timestamp": TIMESTAMP}]				//timestamp not compulsory
+				}
+			]	
+}
+//this is almost same as update Device, but this api will be used more often!, and diffrence is this doesnt have location key-value
+
+
+**NEW** Delete Variable:
+-URl: apis/v1.0/delete-Device
+Payload:
+{
+	"token": "4845221e-fb67-43de-8dd8-90e479d59c3d",
+	"device":"Weather Station",
+	"variable":"Air temperature"
+}
+
+
+DASHBOARD:
+
+Get Dashboard Name :
+- add "default"	to payload		// this will tell app which dashboard to show by default.
+
+
+Get Dashboard
+- add "realtime" 						//tell app if dashboard is realtime
+- add "interval" and "customInterval" to payload
+- widgets information and position taylored accourding to mobile requirements, ask me when implementing
+
+
+**NEW** Delete Dashboard:
+-URl: apis/v1.0/delete-Dashboard
+Payload:
+{
+	"token": "4845221e-fb67-43de-8dd8-90e479d59c3d",
+	"device":"Weather Station",
+	"variable":"Air temperature"
+}
+
+EVENTS N TRIGGERS:
+- "name" to notification_type_name
+
+**NEW** Notification Log:
+-URl: apis/v1.0/notifications
+Payload:
+{
+	"token": "4845221e-fb67-43de-8dd8-90e479d59c3d"
+}
+Result: notification log
+
+
+**Not Adressed***
+- User cannot update "Unit" using api 

@@ -1,0 +1,13 @@
+{
+    "devices": [{
+            "projectName": "Project A",
+            "variable": ["UV", "LUX"],
+            "location": ["23.258526", "72.698563"]
+        },
+        {
+            "projectName": "Project B",
+            "variable": ["AIR", "FAN", "TEMP"],
+            "location": ["23.258526", "72.698563"]
+        }
+    ]
+}

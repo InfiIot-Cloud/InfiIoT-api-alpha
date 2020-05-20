@@ -1,0 +1,2299 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Ubidots API",
+        "description": "\n Welcome to Ubidots REST API documentation.\n Ubidots REST API allows for programmatic access to your account resources, including devices, variables, values and more.\n\n To interact with Ubidots REST API, we recommend using an HTTPS client. Here are a few options:\n\n * [Insomnia](https://insomnia.rest/): Simple yet powerful REST API Client with cookie management, environment variables, code generation, and authentication for Mac, Windows, and Linux.\n * [Postman](https://www.getpostman.com/): Powerful, simple-to-use GUI that makes API development faster, easier, and better. Comes with API request history, collections, environments, tests, sharing and more.\n * [cURL](https://curl.haxx.se/): Command line HTTP client with an intuitive UI, JSON support, syntax highlighting, wget-like downloads, plugins, and more.\n * [HTTPie](https://httpie.org/): Command line tool for transferring data using various protocols with URL syntax.\n\n ## API URLs\n\nAPI access can be made over _HTTP_ or _HTTPS_, using the following endpoints based on your Ubidots Account type.\n\n **Security Note**: We strongly advise using HTTPS to make sure your data travels encrypted, and avoid exposing your API token and/or sensor data.\n\n ### HTTP\n\n Ubidots Account | Endpoint | Port\n ---|--- | --- \n Educational | `http://things.ubidots.com` | 80\n Industrial | `http://industrial.api.ubidots.com` | 80\n\n ### HTTPS\n\n Ubidots Account | Endpoint | Port\n ---|--- | --- \n Educational | `https://things.ubidots.com` | 443\n Industrial | `https://industrial.api.ubidots.com` | 443\n\n You can download the Ubidots PEM certificate for TLS [here](https://z.cdn.ubidots.com/ustatic/certs/roots.pem).\n",
+        "termsOfService": "https://ubidots.com/terms-service/",
+        "contact": {
+            "email": "support@ubidots.com"
+        },
+        "license": {
+            "name": "Copyright Ubidots 2019. All rights reserved"
+        },
+        "version": "v1.6"
+    },
+    "host": "industrial.api.ubidots.com",
+    "schemes": [
+        "https"
+    ],
+    "basePath": "/api/v1.6",
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "securityDefinitions": {
+        "Auth-Token": {
+            "in": "header",
+            "name": "X-Auth-Token",
+            "type": "apiKey"
+        }
+    },
+    "security": [{
+        "Auth-Token": []
+    }],
+    "paths": {
+        "/auth/token/": {
+            "post": {
+                "operationId": "Create Token",
+                "description": "This creates an authentication token that will expire after 6 hours.\nThe token can be used to authenticate every API request during this time.\n\nThe HTTP header `x-ubidots-apikey` is needed.",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": "Created Token",
+                        "schema": {
+                            "$ref": "#/definitions/TokenSerializers"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "token": "bDtiTdBiTSDotsOIdibbTOBudUsDodUIUbiDIsOtoUBIuSdUsbDoTdTuiOBS"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Token"
+                ],
+                "security": [{
+                    "Ubidots-ApiKey": {
+                        "type": "apiKey",
+                        "name": "X-Ubidots-ApiKey",
+                        "in": "header"
+                    }
+                }]
+            },
+            "parameters": []
+        },
+        "/datasources/": {
+            "get": {
+                "operationId": "List Datasources",
+                "description": "This endpoint lists all the user\u2019s existing datasources.",
+                "parameters": [{
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results. Options are: `name` and `created_at`",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "description": "Total number of items available.",
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "description": "Next items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "previous": {
+                                    "description": "Previous items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/DataSource"
+                                    },
+                                    "description": "List of paginated items"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Datasources"
+                ]
+            },
+            "post": {
+                "operationId": "Create Datasource",
+                "description": "This endpoint creates a new datasource.\n\nA datasource has a number of variables and a context where the properties are stored.\nFor example, a datasource called \u201cDelivery Truck\u201d may have the following properties:\n`{\u201cCity\u201d:\u201dBoston\u201d}` or `{\u201cType\u201d:\u201dTruck\u201d}`.\n\nProperties are not meant to change dynamically over time;\nthey are metadata that help you describe your datasource (device).",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/DataSource"
+                    }
+                }],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DataSource"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Datasources"
+                ]
+            },
+            "parameters": []
+        },
+        "/datasources/{id}/": {
+            "get": {
+                "operationId": "Read Datasource",
+                "description": "This endpoint obtains an existing datasource and its details.\n\nIt also returns additional fields not required during the creation of the datasource:\n`number_of_variables`: Shows the number of variables contained by the datasource.\n`last_activity`: Returns the date of last activity.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DataSource"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Datasources"
+                ]
+            },
+            "put": {
+                "operationId": "Update Datasource",
+                "description": "This endpoint updates a datasource, you need to provide all the required fields.",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/DataSource"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DataSource"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Datasources"
+                ]
+            },
+            "patch": {
+                "operationId": "Partially Update Datasource",
+                "description": "This endpoint partially updates a datasource, allowing for individual field updates.",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/DataSource"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DataSource"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Datasources"
+                ]
+            },
+            "delete": {
+                "operationId": "Delete Datasource",
+                "description": "This endpoint deletes a given datasource, specified by its ID.\n\n> Please note that __deleting__ an item will erase all objects related to it, such as variables, values, events and widgets.\n",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Datasources"
+                ]
+            },
+            "parameters": [{
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "type": "string"
+            }]
+        },
+        "/datasources/{id}/variables/": {
+            "get": {
+                "operationId": "List Datasource Variables",
+                "description": "This endpoint lists the variables of a specified datasource, showing all variable fields.",
+                "parameters": [{
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "tag",
+                        "in": "query",
+                        "description": "Filter results to variables containing the specified tags (you can use one or more filters). Example:`?tag=weather&tag=sky`",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "description": "Total number of items available.",
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "description": "Next items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "previous": {
+                                    "description": "Previous items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Variable"
+                                    },
+                                    "description": "List of paginated items"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Datasources"
+                ]
+            },
+            "post": {
+                "operationId": "Create Datasource Variable",
+                "description": "This endpoint creates a new variable within the specified datasource.",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                }],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Datasources"
+                ]
+            },
+            "parameters": [{
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "type": "string"
+            }]
+        },
+        "/devices/{device_label}/": {
+            "get": {
+                "operationId": "Read Device",
+                "description": "This endpoint lists all of a user\u2019s existing devices by label.",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DataSource"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "post": {
+                "operationId": "Create Device",
+                "description": "This endpoint receives devices variables values.",
+                "parameters": [{
+                    "name": "type",
+                    "in": "query",
+                    "description": "Apply type to device on creation. Example:`?type=me_type_name`",
+                    "required": false,
+                    "type": "string"
+                }],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "parameters": [{
+                "name": "device_label",
+                "in": "path",
+                "required": true,
+                "type": "string"
+            }]
+        },
+        "/devices/{device_label}/{variable_label}/": {
+            "get": {
+                "operationId": "Read Device Variable",
+                "description": "This endpoint obtains an existing device variable and its details.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "put": {
+                "operationId": "Update Device Variable",
+                "description": "This endpoint updates a variable.",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "patch": {
+                "operationId": "Partially Update Device Variable",
+                "description": "This endpoint partially updates a variable, allowing for individual field updates.",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "delete": {
+                "operationId": "Delete Device Variable",
+                "description": "This endpoint deletes a given variable.\n\n> Please note that __deleting__ an item will erase all objects related to it, such as variables, values, events and widgets.\n",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "parameters": [{
+                    "name": "device_label",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "variable_label",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/devices/{device_label}/{variable_label}/lv/": {
+            "get": {
+                "operationId": "List Devices Lv",
+                "summary": "Read Device Variable\u2019s Last Value",
+                "description": "This endpoint reads the last value of a variable.",
+                "parameters": [{
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok, Last Value",
+                        "schema": {
+                            "type": "number"
+                        },
+                        "examples": {
+                            "application/json": 42.0
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "parameters": [{
+                    "name": "device_label",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "variable_label",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/devices/{device_label}/{variable_label}/values/": {
+            "get": {
+                "operationId": "List Device Variable Values",
+                "description": "This endpoint lists the values of a variable.",
+                "parameters": [{
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Initial timestamp in milliseconds for values of the variable (inclusive). Example:`?end=1451570441000`",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "description": "Final timestamp in milliseconds for values of the variable (inclusive). Example:`?end=1451570441000`",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "Specifies the format of the returned values, Options are `csv` and `json`: Example:`?format=csv`",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "description": "Total number of items available.",
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "description": "Next items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "previous": {
+                                    "description": "Previous items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Value"
+                                    },
+                                    "description": "List of paginated items"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json",
+                    "text/csv"
+                ],
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "post": {
+                "operationId": "Create Device Variable Value",
+                "description": "This endpoint creates values for a variable.",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/Value"
+                    }
+                }],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Value"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json",
+                    "text/csv"
+                ],
+                "tags": [
+                    "Devices"
+                ]
+            },
+            "parameters": [{
+                    "name": "device_label",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "variable_label",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/statistics/limited/values/": {
+            "get": {
+                "operationId": "List Statistics Limited Values",
+                "description": "",
+                "parameters": [{
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Statistics"
+                ]
+            },
+            "parameters": []
+        },
+        "/utils/timezones/": {
+            "get": {
+                "operationId": "List Utils Timezones",
+                "summary": "List Time Zones",
+                "description": "List time zones by name",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Ok, List of timezones",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "minLength": 1
+                            }
+                        },
+                        "examples": {
+                            "application/json": [
+                                "Africa/Abidjan",
+                                "Africa/Accra",
+                                "Africa/Addis_Ababa",
+                                "..."
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Utils"
+                ],
+                "security": []
+            },
+            "parameters": []
+        },
+        "/utils/utcnow/": {
+            "get": {
+                "operationId": "List Utils Utcnow",
+                "summary": "Get UTC",
+                "description": "Returns the epoch timestamp.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Ok, List of timezones",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "examples": {
+                            "application/json": 1537771939488
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Utils"
+                ],
+                "security": []
+            },
+            "parameters": []
+        },
+        "/variables/": {
+            "get": {
+                "operationId": "List Variables",
+                "description": "This endpoint lists all variables owned by a user.",
+                "parameters": [{
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "description": "Total number of items available.",
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "description": "Next items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "previous": {
+                                    "description": "Previous items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Variable"
+                                    },
+                                    "description": "List of paginated items"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "parameters": []
+        },
+        "/variables/{id}/": {
+            "get": {
+                "operationId": "Read Variable",
+                "description": "This endpoint returns a variable and its details.\nIt shows additional fields than those required during the variable\u2019s creation.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "put": {
+                "operationId": "Update Variable",
+                "description": "",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "patch": {
+                "operationId": "Partially Update Variable",
+                "description": "",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "delete": {
+                "operationId": "Delete Variable",
+                "description": "This endpoint deletes a given variable, specified by its ID.\n\n> Please note that __deleting__ an item will erase all objects related to it, such as variables, values, events and widgets.\n",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "parameters": [{
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "type": "string"
+            }]
+        },
+        "/variables/{id}/statistics/{aggregation}/{start}/{end}/": {
+            "get": {
+                "operationId": "Read Variable Statistic",
+                "summary": "Read Variable Statistics",
+                "description": "This endpoint allows statistics to be computed over a temporal subset of a variable\u2019s values.\nThe subset is given by the values between [start, end].",
+                "parameters": [{
+                        "name": "id",
+                        "in": "path",
+                        "description": "Variable identifier",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "start",
+                        "in": "path",
+                        "description": "Initial timestamp in milliseconds for values of the variable (inclusive). Example:`?end=1451570441000`",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "end",
+                        "in": "path",
+                        "description": "Final timestamp in milliseconds for values of the variable (inclusive). Example:`?end=1451570441000`",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "aggregation",
+                        "in": "path",
+                        "description": "A comma seperated value list of statistical figures to be computed.  \nSupported figures are: `mean`, `variance`, `min`, `max`, `count`, `sum`",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    },
+                    "504": {
+                        "description": "Gateway Timeout",
+                        "examples": {
+                            "application/json": {
+                                "detail": "The operation is too large to compute in a reasonable time."
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "parameters": [{
+                    "name": "aggregation",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "end",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "start",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/variables/{id}/values/": {
+            "get": {
+                "operationId": "List Variable Values",
+                "description": "This endpoint returns the values of the specified variable.\n\nEvery value will be timestamped with a value in milliseconds according to the POSIX standard.",
+                "parameters": [{
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Initial timestamp in milliseconds for values of the variable (inclusive). Example:`?end=1451570441000`",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "description": "Final timestamp in milliseconds for values of the variable (inclusive). Example:`?end=1451570441000`",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "Specifies the format of the returned values, Options are `csv` and `json`: Example:`?format=csv`",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "description": "Total number of items available.",
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "description": "Next items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "previous": {
+                                    "description": "Previous items in the paginated sequence.",
+                                    "type": "integer",
+                                    "format": "uri"
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Value"
+                                    },
+                                    "description": "List of paginated items"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json",
+                    "text/csv"
+                ],
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "post": {
+                "operationId": "Create Variable Value",
+                "description": "This endpoint creates a new value within the specified variable.\n\nEvery value has a timestamp that can either be specified manually by the device, or automatically by the server.",
+                "parameters": [{
+                    "name": "data",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/Value"
+                    }
+                }],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Value"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json",
+                    "text/csv"
+                ],
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "parameters": [{
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "type": "string"
+            }]
+        },
+        "/variables/{id}/values/{start}/{end}/": {
+            "delete": {
+                "operationId": "Delete Variable Value",
+                "description": "This endpoint allows you to delete values between specified start and end times.\n\n> Please note that __deleting__ an item will erase all objects related to it, such as variables, values, events and widgets.\n",
+                "parameters": [{
+                        "name": "id",
+                        "in": "path",
+                        "description": "Variable identifier",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "start",
+                        "in": "path",
+                        "description": "Initial timestamp in milliseconds for values of the variable (inclusive). Example:`?end=1451570441000`",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "end",
+                        "in": "path",
+                        "description": "Final timestamp in milliseconds for values of the variable (inclusive). Example:`?end=1451570441000`",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    },
+                    "403": {
+                        "description": "Forbiden action",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Authentication credentials were not provided."
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "detail": "Not found"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Variables"
+                ]
+            },
+            "parameters": [{
+                    "name": "end",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "start",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        }
+    },
+    "definitions": {
+        "TokenSerializers": {
+            "required": [
+                "token"
+            ],
+            "type": "object",
+            "properties": {
+                "token": {
+                    "title": "Token",
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "SimpleDataSource": {
+            "title": "Parent",
+            "required": [
+                "name"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "Id",
+                    "type": "string",
+                    "readOnly": true,
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "name": {
+                    "title": "Name",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "url": {
+                    "title": "Url",
+                    "type": "string",
+                    "format": "uri",
+                    "readOnly": true
+                },
+                "label": {
+                    "title": "Label",
+                    "type": "string",
+                    "readOnly": true,
+                    "maxLength": 200,
+                    "minLength": 1
+                }
+            }
+        },
+        "DataSource": {
+            "required": [
+                "name"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "Id",
+                    "type": "string",
+                    "readOnly": true,
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "organization_data": {
+                    "title": "Organization data",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "organization": {
+                    "title": "Organization",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "enabled": {
+                    "title": "Enabled",
+                    "type": "boolean",
+                    "default": true
+                },
+                "owner": {
+                    "title": "Owner",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "label": {
+                    "title": "Label",
+                    "type": "string",
+                    "maxLength": 200,
+                    "x-nullable": true
+                },
+                "parent": {
+                    "$ref": "#/definitions/SimpleDataSource"
+                },
+                "name": {
+                    "title": "Name",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "url": {
+                    "title": "Url",
+                    "type": "string",
+                    "format": "uri",
+                    "readOnly": true
+                },
+                "context": {
+                    "title": "Context",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "created_at": {
+                    "title": "Created at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "variables_url": {
+                    "title": "Variables url",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "number_of_variables": {
+                    "title": "Number of variables",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "last_activity": {
+                    "title": "Last activity",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "description": {
+                    "title": "Description",
+                    "type": "string",
+                    "maxLength": 200,
+                    "x-nullable": true
+                },
+                "position": {
+                    "title": "Position",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "readOnly": true,
+                    "x-nullable": true
+                }
+            }
+        },
+        "Variable": {
+            "required": [
+                "name"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "Id",
+                    "type": "string",
+                    "readOnly": true,
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "name": {
+                    "title": "Name",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "icon": {
+                    "title": "Icon",
+                    "type": "string",
+                    "default": "",
+                    "maxLength": 100,
+                    "x-nullable": true
+                },
+                "unit": {
+                    "title": "Unit",
+                    "type": "string",
+                    "maxLength": 50,
+                    "x-nullable": true
+                },
+                "label": {
+                    "title": "Label",
+                    "type": "string",
+                    "maxLength": 200,
+                    "x-nullable": true
+                },
+                "datasource": {
+                    "$ref": "#/definitions/SimpleDataSource"
+                },
+                "url": {
+                    "title": "Url",
+                    "type": "string",
+                    "format": "uri",
+                    "readOnly": true
+                },
+                "description": {
+                    "title": "Description",
+                    "type": "string",
+                    "maxLength": 200,
+                    "x-nullable": true
+                },
+                "properties": {
+                    "title": "Properties",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "values_url": {
+                    "title": "Values url",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "created_at": {
+                    "title": "Created at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "last_value": {
+                    "title": "Last value",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "readOnly": true
+                },
+                "last_activity": {
+                    "title": "Last activity",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "type": {
+                    "title": "Type",
+                    "type": "string",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "default": 0,
+                    "x-nullable": true
+                },
+                "derived_expr": {
+                    "title": "Derived expr",
+                    "type": "string",
+                    "default": "",
+                    "maxLength": 500,
+                    "x-nullable": true
+                }
+            }
+        },
+        "Value": {
+            "required": [
+                "value"
+            ],
+            "type": "object",
+            "properties": {
+                "url": {
+                    "title": "Url",
+                    "type": "string",
+                    "format": "uri",
+                    "readOnly": true
+                },
+                "value": {
+                    "title": "Value",
+                    "type": "number"
+                },
+                "timestamp": {
+                    "title": "Timestamp",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "context": {
+                    "title": "Context",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "created_at": {
+                    "title": "Created at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        }
+    },
+    "tags": [{
+            "name": "Token",
+            "description": "\nEvery request requires a _token_. A token is a unique key that authorizes your device to ingest data inside your Ubidots account.\n\nTokens valid for 6 hours can be generated using your account\u2019s _API Key_.\n\nThere are two ways to send a token in a request:\n\n1. Send the token as an endpoint parameter, setting it with the `?token=expression`. This is the easiest but least secure method of sending authentication credentials.\n\n2. Send the token as a request header. For this, use the `X-Auth-Token` header.\n\n**Security Note**: While sending your token as a URL parameter can be comfortably done with many devices,\nwe only advise doing so in prototyping stages.\nFor production stages, we strongly advise sending the token using the `X-Auth-Token` header.\n"
+        },
+        {
+            "name": "Datasources",
+            "description": "\nA datasource is equivalent to an Ubidots device.\nThe only difference is that `datasources` are identified using unique hash IDs,\nwhile `devices` are identified using human-friendly, user-defined and editable API labels.\n"
+        },
+        {
+            "name": "Devices"
+        },
+        {
+            "name": "Statistics"
+        },
+        {
+            "name": "Variables"
+        },
+        {
+            "name": "Utils"
+        }
+    ]
+}
